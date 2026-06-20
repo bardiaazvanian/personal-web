@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مهندسی سیستم‌های هوشمند | پورتفولیو فنی</title>
+<meta name="description" content="طراحی سیستم‌های RAG، فاین‌تیون مدل‌های هوش مصنوعی، برنامه‌نویسی، وب اسکرپینگ و اتوماسیون با n8n">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg-void: #0a0e0f;
+  --bg-panel: #11171a;
+  --bg-panel-raised: #161e22;
+  --line-faint: rgba(148,196,196,0.10);
+  --line-mid: rgba(148,196,196,0.22);
+  --ink-bright: #eaf3f2;
+  --ink-mid: #9bb0b0;
+  --ink-dim: #5c7170;
+  --signal: #5ee6c4;
+  --signal-dim: #2f7a6a;
+  --ember: #ff8a5b;
+  --ember-dim: #8a4628;
+  --query-blue: #6fa8ff;
+
+  --font-display: 'Vazirmatn', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --container: 1180px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+}
+
+body{
+  background:var(--bg-void);
+  color:var(--ink-bright);
+  font-family:var(--font-display);
+  line-height:1.7;
+  overflow-x:hidden;
+  position:relative;
+}
+
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(var(--line-faint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-faint) 1px, transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 90% 60% at 50% 0%, black 30%, transparent 75%);
+  pointer-events:none; z-index:0;
+}
+
+.wrap{max-width:var(--container); margin:0 auto; padding:0 28px; position:relative; z-index:1;}
+::selection{background:var(--signal); color:var(--bg-void);}
+a{color:inherit; text-decoration:none;}
+
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-track{background:var(--bg-void);}
+::-webkit-scrollbar-thumb{background:var(--signal-dim); border-radius:0;}
+
+/* ============ NAV ============ */
+.nav{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:rgba(10,14,15,0.78);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-faint);
+}
+.nav-inner{
+  max-width:var(--container); margin:0 auto; padding:0 28px;
+  height:64px; display:flex; align-items:center; justify-content:space-between;
+}
+.nav-mark{
+  font-family:var(--font-mono); font-size:13px; letter-spacing:0.06em;
+  color:var(--signal); display:flex; align-items:center; gap:8px;
+}
+.nav-mark .dot{width:7px;height:7px;border-radius:50%;background:var(--signal); box-shadow:0 0 10px var(--signal); animation:blink 2.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.35;}}
+.nav-links{display:flex; gap:2px; font-family:var(--font-mono); font-size:12.5px;}
+.nav-links a{padding:8px 14px; color:var(--ink-mid); border-radius:3px; transition:color .2s, background .2s;}
+.nav-links a:hover{color:var(--ink-bright); background:var(--line-faint);}
+.nav-toggle{display:none;}
+
+@media (max-width: 860px){
+  .nav-links{
+    position:fixed; top:64px; right:0; left:0; flex-direction:column; gap:0;
+    background:var(--bg-panel); border-bottom:1px solid var(--line-faint);
+    max-height:0; overflow:hidden; transition:max-height .3s ease;
+  }
+  .nav-links.open{max-height:400px;}
+  .nav-links a{padding:16px 28px; border-bottom:1px solid var(--line-faint); width:100%;}
+  .nav-toggle{
+    display:block; background:none; border:1px solid var(--line-mid); color:var(--ink-bright);
+    width:36px; height:36px; border-radius:4px; font-family:var(--font-mono); cursor:pointer;
+  }
+}
+
+/* ============ HERO ============ */
+.hero{
+  min-height:100svh; display:flex; flex-direction:column; justify-content:center;
+  position:relative; padding:120px 0 80px;
+}
+.hero-eyebrow{
+  font-family:var(--font-mono); font-size:13px; color:var(--signal);
+  letter-spacing:0.08em; margin-bottom:28px; display:flex; align-items:center; gap:10px;
+}
+.hero-eyebrow::before{content:"//"; color:var(--signal-dim);}
+.hero h1{
+  font-size:clamp(2.4rem, 6vw, 4.6rem); font-weight:800; line-height:1.18;
+  letter-spacing:-0.01em; max-width:920px;
+}
+.hero h1 .accent{color:var(--signal);}
+.hero h1 .em{color:var(--ink-dim); font-weight:500;}
+.hero-sub{margin-top:28px; max-width:620px; font-size:1.1rem; color:var(--ink-mid); font-weight:400;}
+.hero-stack{margin-top:48px; display:flex; flex-wrap:wrap; gap:10px;}
+.stack-chip{
+  font-family:var(--font-mono); font-size:12.5px; padding:7px 14px;
+  border:1px solid var(--line-mid); border-radius:3px; color:var(--ink-mid);
+  background:var(--bg-panel);
+}
+.hero-scroll{
+  position:absolute; bottom:40px; right:28px; font-family:var(--font-mono); font-size:11px;
+  color:var(--ink-dim); display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.hero-scroll .line{width:1px; height:40px; background:linear-gradient(var(--signal), transparent); animation:scrolldown 1.8s ease-in-out infinite;}
+@keyframes scrolldown{0%{opacity:0; transform:translateY(-8px);}50%{opacity:1;}100%{opacity:0; transform:translateY(8px);}}
+.hero-field{position:absolute; inset:0; z-index:-1; opacity:0.55;}
+
+/* ============ SECTION SCAFFOLD ============ */
+section{position:relative; padding:140px 0; border-top:1px solid var(--line-faint);}
+.sec-head{display:flex; flex-direction:column; gap:18px; margin-bottom:64px; max-width:760px;}
+.sec-num{font-family:var(--font-mono); font-size:13px; color:var(--signal-dim); letter-spacing:0.1em;}
+.sec-title{font-size:clamp(1.9rem, 4vw, 2.85rem); font-weight:800; letter-spacing:-0.01em;}
+.sec-title span{color:var(--signal);}
+.sec-desc{color:var(--ink-mid); font-size:1.05rem; max-width:640px;}
+
+/* ============ SECTION 1 — RAG ============ */
+.rag-grid{display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:start;}
+@media (max-width:920px){.rag-grid{grid-template-columns:1fr;}}
+.rag-copy h3{font-size:1.3rem; font-weight:700; margin:32px 0 12px;}
+.rag-copy h3:first-child{margin-top:0;}
+.rag-copy p{color:var(--ink-mid); font-size:0.98rem;}
+.rag-benefits{margin-top:36px; display:flex; flex-direction:column; gap:0; border-top:1px solid var(--line-faint);}
+.rag-benefit{display:grid; grid-template-columns:28px 1fr; gap:16px; padding:18px 0; border-bottom:1px solid var(--line-faint);}
+.rag-benefit .ic{font-family:var(--font-mono); color:var(--signal); font-size:13px; padding-top:2px;}
+.rag-benefit strong{display:block; font-size:0.96rem; margin-bottom:4px;}
+.rag-benefit span{color:var(--ink-mid); font-size:0.9rem;}
+
+.rag-panel{
+  background:var(--bg-panel); border:1px solid var(--line-mid); border-radius:8px;
+  overflow:hidden; position:sticky; top:90px;
+}
+.rag-panel-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; border-bottom:1px solid var(--line-faint);
+  font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim);
+}
+.rag-panel-head .dots{display:flex; gap:6px;}
+.rag-panel-head .dots span{width:8px;height:8px;border-radius:50%; background:var(--line-mid);}
+.rag-stage{position:relative; height:460px;}
+.rag-stage svg{width:100%; height:100%; display:block; direction:ltr;}
+.rag-caption{
+  padding:14px 18px; border-top:1px solid var(--line-faint); font-family:var(--font-mono);
+  font-size:11.5px; color:var(--ink-dim); min-height:42px; display:flex; align-items:center;
+}
+.rag-caption b{color:var(--signal); font-weight:600;}
+
+/* ============ SECTION 2 — FINE-TUNING ============ */
+.ft-intro{display:grid; grid-template-columns:1.1fr 0.9fr; gap:64px; margin-bottom:80px;}
+@media (max-width:920px){.ft-intro{grid-template-columns:1fr;}}
+.ft-intro p{color:var(--ink-mid); margin-bottom:16px;}
+.ft-intro p:last-child{margin-bottom:0;}
+.ft-define{border-right:2px solid var(--signal); padding-right:20px;}
+.ft-define h4{font-size:1.05rem; margin-bottom:8px;}
+
+.ft-compare{
+  display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line-mid);
+  border:1px solid var(--line-mid); border-radius:8px; overflow:hidden;
+}
+@media (max-width:760px){.ft-compare{grid-template-columns:1fr;}}
+.ft-col{background:var(--bg-panel); padding:32px 28px;}
+.ft-col.after{background:var(--bg-panel-raised);}
+.ft-col-label{font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:24px; display:flex; align-items:center; gap:8px;}
+.ft-col.before .ft-col-label{color:var(--ember);}
+.ft-col.after .ft-col-label{color:var(--signal);}
+.ft-metric{margin-bottom:22px;}
+.ft-metric:last-child{margin-bottom:0;}
+.ft-metric-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:12px;}
+.ft-metric-name{font-size:0.86rem; color:var(--ink-mid);}
+.ft-metric-val{font-family:var(--font-mono); font-size:0.92rem; font-weight:600; white-space:nowrap;}
+.ft-bar-track{height:6px; background:var(--bg-void); border-radius:3px; overflow:hidden;}
+.ft-bar-fill{height:100%; border-radius:3px; width:0%; transition:width 1.4s cubic-bezier(.16,1,.3,1);}
+.ft-col.before .ft-bar-fill{background:var(--ember);}
+.ft-col.after .ft-bar-fill{background:var(--signal);}
+
+.ft-impact-row{
+  margin-top:64px; display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  background:var(--line-mid); border:1px solid var(--line-mid); border-radius:8px; overflow:hidden;
+}
+@media (max-width:760px){.ft-impact-row{grid-template-columns:1fr 1fr;}}
+.ft-impact-cell{background:var(--bg-panel); padding:26px 22px;}
+.ft-impact-num{font-family:var(--font-mono); font-size:1.7rem; font-weight:700; color:var(--signal);}
+.ft-impact-label{font-size:0.83rem; color:var(--ink-mid); margin-top:8px;}
+
+/* ============ SECTION 3 — PROGRAMMING ============ */
+.lang-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line-mid); border:1px solid var(--line-mid); border-radius:8px; overflow:hidden; margin-bottom:56px;}
+@media (max-width:860px){.lang-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:480px){.lang-grid{grid-template-columns:1fr;}}
+.lang-cell{
+  background:var(--bg-panel); padding:40px 22px; display:flex; flex-direction:column; align-items:center;
+  gap:16px; text-align:center; transition:background .25s, transform .25s;
+}
+.lang-cell:hover{background:var(--bg-panel-raised); transform:translateY(-3px);}
+.lang-icon{width:48px; height:48px; display:flex; align-items:center; justify-content:center;}
+.lang-icon svg{width:100%; height:100%;}
+.lang-name{font-family:var(--font-mono); font-size:0.94rem; font-weight:700;}
+.lang-use{font-size:0.8rem; color:var(--ink-dim); line-height:1.55;}
+
+.code-philosophy{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:24px;
+}
+@media (max-width:760px){.code-philosophy{grid-template-columns:1fr;}}
+.cp-card{border:1px solid var(--line-mid); border-radius:8px; padding:26px; background:var(--bg-panel);}
+.cp-card .sec-num{font-size:11px; margin-bottom:14px;}
+.cp-card h5{font-size:1rem; margin-bottom:8px;}
+.cp-card p{font-size:0.86rem; color:var(--ink-mid); margin:0;}
+
+/* ============ SECTION 4 — WEB SCRAPING ============ */
+.scrape-grid{display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:start;}
+@media (max-width:920px){.scrape-grid{grid-template-columns:1fr;}}
+.scrape-copy p{color:var(--ink-mid); margin-bottom:16px;}
+.scrape-tools{margin-top:32px; display:flex; flex-direction:column; gap:14px;}
+.scrape-tool{border:1px solid var(--line-mid); border-radius:6px; padding:18px 20px; background:var(--bg-panel);}
+.scrape-tool-head{display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap;}
+.scrape-tool-name{font-family:var(--font-mono); font-weight:700; font-size:0.98rem;}
+.scrape-tool-tag{font-family:var(--font-mono); font-size:10.5px; padding:3px 9px; border:1px solid var(--signal-dim); color:var(--signal); border-radius:3px;}
+.scrape-tool p{font-size:0.86rem; color:var(--ink-mid); margin:0;}
+
+.scrape-anim{background:var(--bg-panel); border:1px solid var(--line-mid); border-radius:8px; overflow:hidden; position:sticky; top:90px;}
+.scrape-anim-head{padding:14px 18px; border-bottom:1px solid var(--line-faint); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim); display:flex; justify-content:space-between;}
+.scrape-stage{height:400px; position:relative;}
+.scrape-stage svg{width:100%; height:100%; direction:ltr;}
+.scrape-caption{padding:14px 18px; border-top:1px solid var(--line-faint); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim); min-height:42px; display:flex; align-items:center;}
+.scrape-caption b{color:var(--signal);}
+
+/* ============ SECTION 5 — N8N ============ */
+.n8n-top{display:grid; grid-template-columns:1fr 1fr; gap:64px; margin-bottom:72px; align-items:start;}
+@media (max-width:920px){.n8n-top{grid-template-columns:1fr;}}
+.n8n-top p{color:var(--ink-mid); margin-bottom:16px;}
+
+.n8n-flow{background:var(--bg-panel); border:1px solid var(--line-mid); border-radius:8px; overflow:hidden;}
+.n8n-flow-head{padding:14px 18px; border-bottom:1px solid var(--line-faint); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim);}
+.n8n-stage{height:340px; position:relative;}
+.n8n-stage svg{width:100%; height:100%; direction:ltr;}
+
+.n8n-usecases-label{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:20px;}
+.n8n-use-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-mid); border:1px solid var(--line-mid); border-radius:8px; overflow:hidden;}
+@media (max-width:760px){.n8n-use-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:480px){.n8n-use-grid{grid-template-columns:1fr;}}
+.n8n-use-cell{background:var(--bg-panel); padding:24px 20px;}
+.n8n-use-cell h5{font-size:0.92rem; margin-bottom:6px;}
+.n8n-use-cell p{font-size:0.8rem; color:var(--ink-dim); margin:0; line-height:1.6;}
+
+.n8n-impact{margin-top:72px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+@media (max-width:760px){.n8n-impact{grid-template-columns:1fr;}}
+.n8n-impact-card{border:1px solid var(--line-mid); border-radius:8px; padding:28px; background:var(--bg-panel); position:relative; overflow:hidden;}
+.n8n-impact-card::before{content:""; position:absolute; top:0; right:0; width:3px; height:100%; background:var(--signal);}
+.n8n-impact-num{font-family:var(--font-mono); font-size:1.7rem; font-weight:700; color:var(--ink-bright);}
+.n8n-impact-title{font-size:0.92rem; font-weight:600; margin:10px 0 6px;}
+.n8n-impact-desc{font-size:0.84rem; color:var(--ink-mid); line-height:1.6;}
+
+/* ============ CONTACT / FOOTER ============ */
+.contact{text-align:center; padding:160px 0 100px;}
+.contact-eyebrow{font-family:var(--font-mono); font-size:13px; color:var(--signal); margin-bottom:20px;}
+.contact h2{font-size:clamp(2rem,5vw,3.2rem); font-weight:800; max-width:700px; margin:0 auto;}
+.contact p{color:var(--ink-mid); max-width:480px; margin:24px auto 40px;}
+.contact-links{display:flex; gap:16px; justify-content:center; flex-wrap:wrap;}
+.btn{font-family:var(--font-mono); font-size:13px; padding:14px 28px; border-radius:5px; border:1px solid var(--line-mid); transition:all .2s; cursor:pointer; background:transparent;}
+.btn.primary{background:var(--signal); color:var(--bg-void); border-color:var(--signal); font-weight:600;}
+.btn.primary:hover{background:#7ff2d2;}
+.btn.ghost{color:var(--ink-bright);}
+.btn.ghost:hover{border-color:var(--signal); color:var(--signal);}
+
+footer{border-top:1px solid var(--line-faint); padding:32px 0; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+
+/* ============ REVEAL ANIM ============ */
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+a:focus-visible, button:focus-visible{outline:2px solid var(--signal); outline-offset:3px;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-mark"><span class="dot"></span>BARDIA AZVANIAN</div>
+    <button class="nav-toggle" id="navToggle" aria-label="باز کردن منو">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="#rag">RAG</a>
+      <a href="#finetune">فاین‌تیون</a>
+      <a href="#code">برنامه‌نویسی</a>
+      <a href="#scraping">وب اسکرپینگ</a>
+      <a href="#n8n">اتوماسیون</a>
+      <a href="#contact">تماس</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero wrap">
+  <svg class="hero-field" id="heroField" viewBox="0 0 1180 700" preserveAspectRatio="xMidYMid slice"></svg>
+  <div class="hero-eyebrow">بردیا ازوانیان — مهندسی سیستم‌های هوش مصنوعی و اتوماسیون</div>
+  <h1>سیستم‌هایی که <span class="accent">فکر می‌کنن</span>،<br><span class="em">نه فقط</span> اجرا می‌شن.</h1>
+  <p class="hero-sub">
+    این صفحه نمونه‌ای از کارهاییه که بلدم انجام بدم: از ساخت سیستم‌های بازیابی اطلاعات هوشمند (RAG) و سفارشی‌سازی مدل‌های زبانی، تا برنامه‌نویسی، استخراج داده از وب و اتوماسیون فرآیندهای سازمانی با n8n.
+  </p>
+  <div class="hero-stack">
+    <span class="stack-chip">RAG Systems</span>
+    <span class="stack-chip">Fine-tuning</span>
+    <span class="stack-chip">Python</span>
+    <span class="stack-chip">C#</span>
+    <span class="stack-chip">JavaScript</span>
+    <span class="stack-chip">Playwright / Selenium</span>
+    <span class="stack-chip">n8n Automation</span>
+  </div>
+  <div class="hero-scroll"><span>SCROLL</span><span class="line"></span></div>
+</header>
+
+<!-- ============ SECTION 1: RAG ============ -->
+<section id="rag">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">۰۱ / طراحی سیستم</div>
+      <h2 class="sec-title">سیستم‌های <span>RAG</span> چطور به کسب‌وکار شما هوش می‌بخشند</h2>
+      <p class="sec-desc">RAG یا «بازیابی-تقویت‌شده‌ی تولید متن» راهیه برای اینکه یک مدل زبانی به‌جای حدس‌زدن، جواب‌هاش رو از روی داده‌های واقعی و به‌روز شما بسازه.</p>
+    </div>
+
+    <div class="rag-grid">
+      <div class="rag-copy reveal">
+        <h3>RAG دقیقاً چیه؟</h3>
+        <p>یک مدل زبانی به‌تنهایی فقط چیزی رو می‌دونه که در زمان آموزشش دیده. اگه ازش درباره‌ی محصولات شما، قیمت‌های امروز یا مستندات داخلی‌تون بپرسید، یا اشتباه حدس می‌زنه یا جواب رد می‌کنه. RAG این مشکل رو حل می‌کنه: قبل از اینکه مدل جواب بده، یک مرحله‌ی جست‌وجو در داده‌های واقعی شما (کاتالوگ محصول، مستندات، تیکت‌های پشتیبانی) انجام می‌شه و فقط بخش‌های مرتبط به مدل داده می‌شه تا روی همون‌ها جواب بسازه.</p>
+
+        <h3>چرا برای کسب‌وکارها مهمه؟</h3>
+        <p>چون اجازه می‌ده دستیار هوشمند شما همیشه روی آخرین و دقیق‌ترین داده‌ی شرکت جواب بده، بدون نیاز به آموزش دوباره‌ی مدل هر بار که یک محصول جدید اضافه می‌شه یا یک قیمت تغییر می‌کنه. هم سریع‌تره، هم ارزون‌تر از فاین‌تیون مداوم، و هم قابل ردیابیه — می‌تونید دقیقاً ببینید جواب از کدوم سند اومده.</p>
+
+        <div class="rag-benefits">
+          <div class="rag-benefit">
+            <div class="ic">01</div>
+            <div><strong>پاسخ‌های مبتنی بر واقعیت</strong><span>مدل به‌جای توهم‌زدن (hallucination)، از سند واقعی شما نقل‌قول می‌کنه.</span></div>
+          </div>
+          <div class="rag-benefit">
+            <div class="ic">02</div>
+            <div><strong>به‌روزرسانی آنی دانش</strong><span>کافیه سند جدید رو به پایگاه داده اضافه کنید؛ نیازی به آموزش دوباره‌ی مدل نیست.</span></div>
+          </div>
+          <div class="rag-benefit">
+            <div class="ic">03</div>
+            <div><strong>هزینه‌ی عملیاتی پایین‌تر</strong><span>به‌جای مدل‌های بزرگ و گرون، با مدل‌های کوچک‌تر و سریع‌تر هم می‌شه نتیجه‌ی خوب گرفت.</span></div>
+          </div>
+          <div class="rag-benefit">
+            <div class="ic">04</div>
+            <div><strong>شفافیت و اعتمادپذیری</strong><span>منبع هر پاسخ مشخصه؛ برای حوزه‌هایی مثل پشتیبانی و فروش حیاتیه.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rag-panel reveal">
+        <div class="rag-panel-head">
+          <span>RAG_PIPELINE.LIVE</span>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+        <div class="rag-stage" id="ragStage">
+          <svg id="ragSvg" viewBox="0 0 520 460" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="rag-caption" id="ragCaption">در حال آماده‌سازی پایپ‌لاین…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 2: FINE-TUNING ============ -->
+<section id="finetune">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">۰۲ / سفارشی‌سازی مدل</div>
+      <h2 class="sec-title">سفارشی‌سازی و <span>Fine-tuning</span> مدل‌های هوش مصنوعی</h2>
+      <p class="sec-desc">فاین‌تیون یعنی آموزش دوباره‌ی یک مدل پایه روی داده‌های اختصاصی شما تا رفتار، لحن و دقتش دقیقاً مطابق نیاز کسب‌وکارتون بشه.</p>
+    </div>
+
+    <div class="ft-intro">
+      <div class="ft-define reveal">
+        <h4>فاین‌تیون چیست؟</h4>
+        <p>به‌جای استفاده از یک مدل عمومی که قراره همه‌چیز رو بدونه، فاین‌تیون یعنی مدل رو با هزاران نمونه‌ی واقعی از مکالمات، اسناد یا تصمیم‌های شرکت شما دوباره آموزش بدیم تا اصطلاحات، لحن برند و قوانین داخلی‌تون رو از قبل بلد باشه — نه اینکه هر بار توی پرامپت توضیح داده بشه.</p>
+        <p>این کار معمولاً برای مسائلی که الگوی رفتاری ثابت و تکرارشونده دارن (مثل طبقه‌بندی تیکت، تشخیص لحن مشتری، یا تولید گزارش با فرمت خاص) ارزش بیشتری نسبت به RAG ایجاد می‌کنه.</p>
+      </div>
+      <div class="reveal">
+        <p style="color:var(--ink-mid)">سوال اصلی این نیست که فاین‌تیون «خوبه یا بد»، بلکه اینه که چقدر فاصله‌ی بین یک مدل عمومی و نیاز دقیق شما رو پر می‌کنه. نمودار زیر این فاصله رو در چند معیار کلیدی تجربه‌ی کاربری نشون می‌ده:</p>
+      </div>
+    </div>
+
+    <div class="ft-compare reveal" id="ftCompare">
+      <div class="ft-col before">
+        <div class="ft-col-label">◷ بدون فاین‌تیون</div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">دقت پاسخ در حوزه‌ی تخصصی</span><span class="ft-metric-val">58٪</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="58"></div></div>
+        </div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">تطابق با لحن برند</span><span class="ft-metric-val">41٪</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="41"></div></div>
+        </div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">سرعت پاسخ‌گویی</span><span class="ft-metric-val">متوسط</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="55"></div></div>
+        </div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">هزینه‌ی هر درخواست</span><span class="ft-metric-val">بالا</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="75"></div></div>
+        </div>
+      </div>
+      <div class="ft-col after">
+        <div class="ft-col-label">◉ با فاین‌تیون</div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">دقت پاسخ در حوزه‌ی تخصصی</span><span class="ft-metric-val">93٪</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="93"></div></div>
+        </div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">تطابق با لحن برند</span><span class="ft-metric-val">95٪</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="95"></div></div>
+        </div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">سرعت پاسخ‌گویی</span><span class="ft-metric-val">بالا</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="88"></div></div>
+        </div>
+        <div class="ft-metric">
+          <div class="ft-metric-top"><span class="ft-metric-name">هزینه‌ی هر درخواست</span><span class="ft-metric-val">پایین</span></div>
+          <div class="ft-bar-track"><div class="ft-bar-fill" data-w="30"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-impact-row reveal">
+      <div class="ft-impact-cell">
+        <div class="ft-impact-num">۲–۳×</div>
+        <div class="ft-impact-label">کاهش طول پرامپت با یادگیری از قبل به‌جای توضیح در لحظه</div>
+      </div>
+      <div class="ft-impact-cell">
+        <div class="ft-impact-num">کاهش خطا</div>
+        <div class="ft-impact-label">پاسخ‌های خارج از قاعده در فرآیندهای تکراری و حساس کمتر می‌شه</div>
+      </div>
+      <div class="ft-impact-cell">
+        <div class="ft-impact-num">یکدستی</div>
+        <div class="ft-impact-label">لحن و فرمت پاسخ در همه‌ی مکالمات ثابت و قابل‌پیش‌بینی می‌مونه</div>
+      </div>
+      <div class="ft-impact-cell">
+        <div class="ft-impact-num">تجربه‌ی بهتر</div>
+        <div class="ft-impact-label">کاربر نهایی پاسخ‌هایی می‌گیره که حس «طراحی‌شده برای من» دارن</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3: PROGRAMMING ============ -->
+<section id="code">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">۰۳ / مهارت‌های فنی</div>
+      <h2 class="sec-title">زبان‌ها و ابزارهای <span>برنامه‌نویسی</span></h2>
+      <p class="sec-desc">از طراحی رابط کاربری تا منطق بک‌اند و اسکریپت‌های خودکار — این‌ها ابزارهایی هستن که برای ساخت سیستم‌ها ازشون استفاده می‌کنم.</p>
+    </div>
+
+    <div class="lang-grid reveal">
+      <div class="lang-cell">
+        <div class="lang-icon">
+          <svg viewBox="0 0 128 128"><path fill="#E44D26" d="M19.037 109.86L9.032 0h109.93l-10.012 109.844L63.946 128"/><path fill="#F16529" d="M64.001 118.788l34.42-9.554 8.564-95.886H64.001"/><path fill="#EBEBEB" d="M64.052 52.471H46.882l-1.187-13.302h18.357V26.43H31.91l.327 3.66 3.355 37.59h28.46zM64.052 88.626l-.052.014-15.27-4.121-.977-10.93h-12.8l1.922 21.546 27.114 7.53.063-.017z"/><path fill="#FFF" d="M64.001 52.471v12.759h15.984l-1.508 16.876-14.476 3.91v13.27l27.137-7.524.2-2.234 3.112-34.86.323-3.661.241-2.701.243-2.711V26.43h-31.256v12.74h18.085l-1.207 13.301z"/></svg>
+        </div>
+        <div class="lang-name">HTML5</div>
+        <div class="lang-use">ساختار و معنا‌دهی به صفحات وب</div>
+      </div>
+      <div class="lang-cell">
+        <div class="lang-icon">
+          <svg viewBox="0 0 128 128"><path fill="#1572B6" d="M19.037 109.86L9.032 0h109.93l-10.012 109.844L63.946 128"/><path fill="#33A9DC" d="M64.001 118.788l34.42-9.554 8.564-95.886H64.001"/><path fill="#FFF" d="M64.052 52.471H46.882l-1.187-13.302h18.357V26.43H31.91l.327 3.66 3.355 37.59h28.46zM64.052 88.626l-.052.014-15.27-4.121-.977-10.93h-12.8l1.922 21.546 27.114 7.53.063-.017z"/><path fill="#EBEBEB" d="M64.001 52.471v12.759h15.984l-1.508 16.876-14.476 3.91v13.27l27.137-7.524.2-2.234 3.112-34.86.323-3.661.241-2.701.243-2.711V26.43h-31.256v12.74h18.085l-1.207 13.301z"/></svg>
+        </div>
+        <div class="lang-name">CSS3</div>
+        <div class="lang-use">استایل‌دهی، چیدمان و انیمیشن رابط کاربری</div>
+      </div>
+      <div class="lang-cell">
+        <div class="lang-icon">
+          <svg viewBox="0 0 128 128"><path fill="#F0DB4F" d="M1.408 1.408h125.184v125.185H1.408z"/><path fill="#323330" d="M116.347 96.736c-.917-5.711-4.641-10.508-15.672-14.981-3.832-1.761-8.104-3.022-9.377-5.926-.452-1.69-.512-2.642-.226-3.665.821-3.32 4.784-4.355 7.925-3.403 2.023.678 3.938 2.237 5.093 4.724 5.402-3.498 5.391-3.475 9.163-5.879-1.381-2.141-2.118-3.129-3.022-4.045-3.249-3.629-7.676-5.498-14.756-5.355l-3.688.477c-3.534.893-6.902 2.748-8.877 5.235-5.926 6.724-4.236 18.492 2.975 23.335 7.104 5.332 17.54 6.545 18.873 11.531 1.297 6.104-4.486 8.08-10.234 7.378-4.236-.881-6.592-3.034-9.139-6.949-4.688 2.713-4.688 2.713-9.508 5.485 1.143 2.499 2.344 3.63 4.26 5.795 9.068 9.198 31.76 8.746 35.83-5.176.165-.478 1.261-3.666.38-8.581M69.462 58.943H57.802c0 10.78-.049 21.488-.049 32.272 0 6.866.353 13.169-.765 15.112-1.844 3.582-6.601 3.129-8.76 2.499-2.207-.881-3.34-2.122-4.652-4.124-.353-.585-.617-1.098-.696-1.123-3.18 1.953-6.345 3.928-9.526 5.881 1.751 3.628 4.26 6.785 7.508 8.766 6.064 3.66 14.214 4.804 21.706 1.226 5.323-2.768 7.831-7.973 8.605-13.467.13-.502.06-31.012.072-31.554"/></svg>
+        </div>
+        <div class="lang-name">JavaScript</div>
+        <div class="lang-use">تعامل، منطق سمت کلاینت و اتصال به API‌ها</div>
+      </div>
+      <div class="lang-cell">
+        <div class="lang-icon">
+          <svg viewBox="0 0 128 128"><path fill="#178600" d="M58.06 4.918L9.097 32.97a8 8 0 0 0-4 6.928v56.103a8 8 0 0 0 4 6.928l48.964 28.052a8.001 8.001 0 0 0 8 0l48.963-28.052a8 8 0 0 0 4.001-6.928V39.898a8 8 0 0 0-4.001-6.928L66.061 4.918a8.003 8.003 0 0 0-8.001 0z"/><path fill="#fff" d="M97.5 49.5h-21v6.7h13.5v32.6h-13v6.7h33.6v-6.7H97.5V49.5z"/><path fill="#fff" d="M44.2 49.4h-8.7L17.8 95.5h8.4l3.7-9.9h19.3l3.7 9.9h8.7L44.2 49.4zm-11.6 29l7.2-19.5 7.3 19.5H32.6z"/></svg>
+        </div>
+        <div class="lang-name">C#</div>
+        <div class="lang-use">منطق برنامه‌های دسکتاپ و سرویس‌های بک‌اند</div>
+      </div>
+      <div class="lang-cell">
+        <div class="lang-icon">
+          <svg viewBox="0 0 128 128"><linearGradient id="pyA" x1="20.577" x2="93.521" y1="20.857" y2="94.17" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#387eb8"/><stop offset="1" stop-color="#366994"/></linearGradient><path fill="url(#pyA)" d="M63.391 1.988c-4.222.02-8.252.379-11.8 1.007-10.45 1.846-12.346 5.71-12.346 12.837v9.411h24.693v3.137H29.977c-7.176 0-13.46 4.313-15.426 12.521-2.268 9.405-2.368 15.275 0 25.096 1.755 7.311 5.947 12.519 13.124 12.519h8.491V67.234c0-8.151 7.052-15.34 15.426-15.34h24.665c6.866 0 12.346-5.654 12.346-12.548V15.832c0-6.693-5.646-11.72-12.346-12.837-4.244-.706-8.645-1.027-12.866-1.007zM50.037 9.557c2.55 0 4.634 2.117 4.634 4.721 0 2.593-2.083 4.69-4.634 4.69-2.56 0-4.633-2.097-4.633-4.69-.001-2.604 2.073-4.721 4.633-4.721z"/><linearGradient id="pyB" x1="95.479" x2="22.546" y1="108.348" y2="35.226" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe052"/><stop offset="1" stop-color="#ffc331"/></linearGradient><path fill="url(#pyB)" d="M91.682 28.973v10.8c0 8.498-7.205 15.65-15.426 15.65H51.591c-6.756 0-12.346 5.78-12.346 12.548v23.514c0 6.692 5.823 10.628 12.346 12.547 7.815 2.303 15.31 2.72 24.665 0 6.216-1.801 12.346-5.428 12.346-12.547v-9.412H63.938v-3.138h36.992c7.176 0 9.852-5.005 12.348-12.519 2.578-7.735 2.467-15.174 0-25.096-1.774-7.145-4.661-12.519-12.348-12.519h-9.248v.001zM77.473 86.486c2.561 0 4.634 2.097 4.634 4.692 0 2.602-2.074 4.719-4.634 4.719-2.55 0-4.633-2.117-4.633-4.719 0-2.595 2.083-4.692 4.633-4.692z"/></svg>
+        </div>
+        <div class="lang-name">Python</div>
+        <div class="lang-use">هوش مصنوعی، اسکرپینگ، اتوماسیون و بک‌اند</div>
+      </div>
+    </div>
+
+    <div class="code-philosophy reveal">
+      <div class="cp-card">
+        <div class="sec-num">FRONTEND</div>
+        <h5>HTML / CSS / JS</h5>
+        <p>ساخت رابط‌های کاربری واکنش‌گرا و سریع، از صفحات معرفی تا داشبوردهای تعاملی.</p>
+      </div>
+      <div class="cp-card">
+        <div class="sec-num">BACKEND</div>
+        <h5>Python / C#</h5>
+        <p>منطق سرور، پردازش داده، اتصال به مدل‌های هوش مصنوعی و ساخت API.</p>
+      </div>
+      <div class="cp-card">
+        <div class="sec-num">GLUE CODE</div>
+        <h5>اسکریپت‌نویسی</h5>
+        <p>اتصال سرویس‌های مختلف به هم — از اسکرپینگ تا اتوماسیون و پردازش دسته‌ای.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4: WEB SCRAPING ============ -->
+<section id="scraping">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">۰۴ / استخراج داده</div>
+      <h2 class="sec-title"><span>Web Scraping</span> با پایتون</h2>
+      <p class="sec-desc">وب‌اسکرپینگ یعنی استخراج خودکار اطلاعات از صفحات وب — وقتی داده‌ای که نیاز دارید API نداره، اما توی یک صفحه‌ی وب در دسترسه.</p>
+    </div>
+
+    <div class="scrape-grid">
+      <div class="scrape-copy reveal">
+        <p><strong style="color:var(--ink-bright)">وب اسکرپینگ چیه؟</strong> به‌جای کپی‌کردن دستی اطلاعات از سایت‌ها (قیمت محصول، نظرات کاربران، لیست محصولات رقبا، اخبار)، یک اسکریپت می‌نویسیم که خودش صفحه رو باز می‌کنه، عناصر موردنظر رو پیدا می‌کنه و داده رو به‌صورت ساخت‌یافته (مثل JSON یا اکسل) استخراج می‌کنه.</p>
+        <p>کاربردش از مانیتورینگ قیمت رقبا و جمع‌آوری داده برای آموزش مدل‌های هوش مصنوعی گرفته تا گزارش‌گیری خودکار و تغذیه‌ی سیستم‌های RAG با محتوای به‌روز وب، گسترده‌ست.</p>
+
+        <div class="scrape-tools">
+          <div class="scrape-tool">
+            <div class="scrape-tool-head">
+              <span class="scrape-tool-name">Playwright</span>
+              <span class="scrape-tool-tag">مرورگر واقعی</span>
+            </div>
+            <p>برای صفحاتی که محتواشون با جاوااسکریپت ساخته می‌شه (سایت‌های پویا). یک مرورگر واقعی رو کنترل می‌کنه، منتظر لود کامل صفحه می‌مونه و حتی می‌تونه از بخشی از صفحه اسکرین‌شات بگیره.</p>
+          </div>
+          <div class="scrape-tool">
+            <div class="scrape-tool-head">
+              <span class="scrape-tool-name">Selenium</span>
+              <span class="scrape-tool-tag">اتوماسیون مرورگر</span>
+            </div>
+            <p>ابزار جا‌افتاده‌ی اتوماسیون مرورگر؛ برای صفحاتی که نیاز به شبیه‌سازی رفتار کاربر دارن — کلیک، اسکرول، پر کردن فرم — قبل از استخراج داده.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="scrape-anim reveal">
+        <div class="scrape-anim-head">
+          <span>SCRAPER.PY — RUNNING</span>
+        </div>
+        <div class="scrape-stage">
+          <svg id="scrapeSvg" viewBox="0 0 520 400" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="scrape-caption" id="scrapeCaption">در حال بارگذاری صفحه…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5: N8N ============ -->
+<section id="n8n">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">۰۵ / اتوماسیون</div>
+      <h2 class="sec-title">اتوماسیون فرآیندها با <span>n8n</span></h2>
+      <p class="sec-desc">n8n ابزاریه برای اتصال سرویس‌ها و سیستم‌های مختلف به هم، بدون نیاز به نوشتن کد جداگانه برای هر اتصال.</p>
+    </div>
+
+    <div class="n8n-top">
+      <div class="reveal">
+        <p><strong style="color:var(--ink-bright)">n8n چیه؟</strong> یک پلتفرم اتوماسیون بصریه که در اون فرآیندها رو به‌صورت یک نمودار جریان (workflow) می‌سازید: وقتی اتفاقی می‌افته (سفارش جدید، پیام جدید، فرم پر شد)، یک زنجیره از اقدامات خودکار اجرا می‌شه — بدون دخالت دستی انسان.</p>
+        <p>برخلاف کدنویسی از صفر، n8n صدها سرویس آماده داره (CRM، ایمیل، پیامک، دیتابیس، شبکه‌های اجتماعی، مدل‌های هوش مصنوعی) که فقط باید به هم وصل بشن.</p>
+      </div>
+      <div class="n8n-flow reveal">
+        <div class="n8n-flow-head">WORKFLOW.N8N</div>
+        <div class="n8n-stage">
+          <svg id="n8nSvg" viewBox="0 0 520 340" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="n8n-usecases-label">/// کاربردها در سازمان</div>
+      <div class="n8n-use-grid">
+        <div class="n8n-use-cell">
+          <h5>پاسخ‌گویی خودکار به مشتری</h5>
+          <p>پیام مشتری دریافت می‌شه، به مدل هوش مصنوعی ارسال می‌شه، پاسخ ساخته و در CRM ثبت می‌شه — بدون دخالت دستی.</p>
+        </div>
+        <div class="n8n-use-cell">
+          <h5>همگام‌سازی داده بین سیستم‌ها</h5>
+          <p>سفارش جدید در فروشگاه آنلاین به‌صورت خودکار در انبارداری، حسابداری و سیستم ارسال پیامک ثبت می‌شه.</p>
+        </div>
+        <div class="n8n-use-cell">
+          <h5>گزارش‌گیری دوره‌ای</h5>
+          <p>هر روز صبح، گزارش فروش از پایگاه داده استخراج، خلاصه‌سازی و در کانال تیم ارسال می‌شه.</p>
+        </div>
+        <div class="n8n-use-cell">
+          <h5>غربال‌گری سرنخ‌های فروش</h5>
+          <p>فرم تماس بررسی، اولویت‌بندی و به‌صورت خودکار به فرد مسئول در تیم فروش ارجاع داده می‌شه.</p>
+        </div>
+        <div class="n8n-use-cell">
+          <h5>هشدار و مانیتورینگ</h5>
+          <p>وقتی قیمت رقیب تغییر می‌کنه یا موجودی انبار کم می‌شه، تیم مربوطه فوراً مطلع می‌شه.</p>
+        </div>
+        <div class="n8n-use-cell">
+          <h5>آماده‌سازی محتوا برای RAG</h5>
+          <p>محتوای جدید سایت یا اسناد به‌صورت خودکار پردازش و به پایگاه دانش دستیار هوشمند اضافه می‌شه.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="n8n-impact reveal">
+      <div class="n8n-impact-card">
+        <div class="n8n-impact-num">سرعت</div>
+        <div class="n8n-impact-title">کارهایی که ساعت‌ها طول می‌کشید، در ثانیه</div>
+        <div class="n8n-impact-desc">فرآیندهای تکراری که قبلاً دستی و کند انجام می‌شدن، حالا بلافاصله و بدون فاصله‌ی زمانی اجرا می‌شن.</div>
+      </div>
+      <div class="n8n-impact-card">
+        <div class="n8n-impact-num">دقت</div>
+        <div class="n8n-impact-title">حذف خطای انسانی در ورود داده</div>
+        <div class="n8n-impact-desc">کپی-پیست دستی بین سیستم‌ها جای خودش رو به انتقال خودکار و بدون خطا می‌ده.</div>
+      </div>
+      <div class="n8n-impact-card">
+        <div class="n8n-impact-num">مقیاس‌پذیری</div>
+        <div class="n8n-impact-title">رشد بدون نیاز به نیروی انسانی بیشتر</div>
+        <div class="n8n-impact-desc">حجم کار می‌تونه چند برابر بشه بدون اینکه نیاز به استخدام متناسب با اون رشد باشه.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<footer class="contact wrap" id="contact">
+  <div class="contact-eyebrow reveal">// همکاری</div>
+  <h2 class="reveal">آماده‌اید یک سیستم هوشمند برای کسب‌وکارتون بسازیم؟</h2>
+  <p class="reveal">از طراحی اولیه‌ی معماری RAG تا اتوماسیون کامل فرآیندها — می‌تونیم با هم شروع کنیم.</p>
+  <div class="contact-links reveal">
+    <a href="mailto:you@example.com" class="btn primary">ارسال ایمیل</a>
+    <a href="https://github.com/bardiaazvanian" class="btn ghost">گیت‌هاب</a>
+    <a href="https://linkedin.com/in/bardiaazvanian" class="btn ghost">لینکدین</a>
+  </div>
+</footer>
+
+<footer class="wrap">
+  <span>© <span id="year"></span> بردیا ازوانیان — ساخته‌شده با دقت</span>
+  <span>BARDIA AZVANIAN / AI + AUTOMATION</span>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* nav toggle */
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+/* reveal on scroll */
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, {threshold:0.15});
+revealEls.forEach(el => io.observe(el));
+
+/* ============ HERO FIELD — ambient node network ============ */
+(function(){
+  const svg = document.getElementById('heroField');
+  const W=1180, H=700;
+  const N = 38;
+  const nodes = [];
+  for(let i=0;i<N;i++){
+    nodes.push({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.18, vy: (Math.random()-0.5)*0.18,
+      r: 1.4 + Math.random()*1.8
+    });
+  }
+  const ns = "http://www.w3.org/2000/svg";
+  const linesGroup = document.createElementNS(ns,"g");
+  const dotsGroup = document.createElementNS(ns,"g");
+  svg.appendChild(linesGroup);
+  svg.appendChild(dotsGroup);
+
+  const dotEls = nodes.map(n=>{
+    const c = document.createElementNS(ns,"circle");
+    c.setAttribute("r", n.r);
+    c.setAttribute("fill", "#5ee6c4");
+    c.setAttribute("opacity", "0.55");
+    dotsGroup.appendChild(c);
+    return c;
+  });
+
+  function step(){
+    nodes.forEach(n=>{
+      n.x += n.vx; n.y += n.vy;
+      if(n.x<0||n.x>W) n.vx*=-1;
+      if(n.y<0||n.y>H) n.vy*=-1;
+    });
+    dotEls.forEach((c,i)=>{
+      c.setAttribute("cx", nodes[i].x);
+      c.setAttribute("cy", nodes[i].y);
+    });
+    let linesHTML = "";
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
+        const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if(d<130){
+          const op = (1-d/130)*0.28;
+          linesHTML += `<line x1="${nodes[i].x.toFixed(1)}" y1="${nodes[i].y.toFixed(1)}" x2="${nodes[j].x.toFixed(1)}" y2="${nodes[j].y.toFixed(1)}" stroke="#5ee6c4" stroke-width="1" opacity="${op.toFixed(2)}"/>`;
+        }
+      }
+    }
+    linesGroup.innerHTML = linesHTML;
+    requestAnimationFrame(step);
+  }
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    requestAnimationFrame(step);
+  } else {
+    step();
+  }
+})();
+
+/* ============ RAG ANIMATION — redesigned v2 ============ */
+(function(){
+  const svg = document.getElementById('ragSvg');
+  const caption = document.getElementById('ragCaption');
+  const ns = "http://www.w3.org/2000/svg";
+  svg.setAttribute('viewBox', '0 0 600 540');
+  svg.setAttribute('direction', 'ltr');
+
+  function el(tag, attrs){
+    const e = document.createElementNS(ns, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  const defs = el('defs', {});
+  const glow = el('filter', {id:'ragGlow', x:'-60%', y:'-60%', width:'220%', height:'220%'});
+  glow.appendChild(el('feGaussianBlur', {stdDeviation:'3.2', result:'blur'}));
+  const merge = el('feMerge', {});
+  merge.appendChild(el('feMergeNode', {in:'blur'}));
+  merge.appendChild(el('feMergeNode', {in:'SourceGraphic'}));
+  glow.appendChild(merge);
+  defs.appendChild(glow);
+  svg.appendChild(defs);
+
+  const root = el('g', {});
+  svg.appendChild(root);
+  const beamLayer = el('g', {});
+  svg.appendChild(beamLayer);
+
+  function label(x,y,text){
+    const t = el('text', {x, y, fill:'#5c7170', 'font-family':'JetBrains Mono, monospace', 'font-size':'10.5', 'text-anchor':'middle', 'letter-spacing':'0.04em'});
+    t.textContent = text;
+    root.appendChild(t);
+    return t;
+  }
+  label(125, 34, 'DATABASE');
+  label(475, 34, 'USER QUERY');
+  label(475, 506, 'LANGUAGE MODEL');
+  label(125, 506, 'FINAL ANSWER');
+
+  // ---------- knowledge base: stacked document cards (wider, text fits) ----------
+  const cardW = 86, cardH = 50, gapX = 10, gapY = 10;
+  const baseX = 30, baseY = 56;
+  const docPositions = [
+    [baseX, baseY], [baseX+cardW+gapX, baseY],
+    [baseX, baseY+cardH+gapY], [baseX+cardW+gapX, baseY+cardH+gapY],
+    [baseX, baseY+2*(cardH+gapY)], [baseX+cardW+gapX, baseY+2*(cardH+gapY)],
+    [baseX, baseY+3*(cardH+gapY)], [baseX+cardW+gapX, baseY+3*(cardH+gapY)]
+  ];
+  const docContents = [
+    ['Oud Royal', 'عطر شرقی'],
+    ['Rose Garden', 'عطر گلی'],
+    ['Cedar Wood', 'عطر چوبی'],
+    ['Citrus Fresh', 'عطر مرکباتی'],
+    ['Musk Noir', 'عطر مشکی'],
+    ['Ocean Breeze', 'عطر دریایی'],
+    ['Spice Amber', 'عطر ادویه‌ای'],
+    ['Vanilla Sky', 'عطر وانیلی']
+  ];
+
+  const docEls = docPositions.map((p,i)=>{
+    const g = el('g', {transform:`translate(${p[0]},${p[1]})`});
+    const card = el('rect', {width:cardW, height:cardH, rx:7, fill:'#161e22', stroke:'#2f7a6a', 'stroke-width':1.2});
+    const head = el('rect', {x:9, y:9, width:30, height:4, rx:2, fill:'#5ee6c4', opacity:0.85});
+    const l1 = el('text', {x:cardW/2, y:27, fill:'#aebcbc', 'font-family':'JetBrains Mono, monospace', 'font-size':'7.4', 'text-anchor':'middle'});
+    l1.textContent = docContents[i][0];
+    const l2 = el('text', {x:cardW/2, y:41, fill:'#5c7170', 'font-family':'Vazirmatn, sans-serif', 'font-size':'8.5', 'text-anchor':'middle', direction:'rtl'});
+    l2.textContent = docContents[i][1];
+    g.appendChild(card); g.appendChild(head); g.appendChild(l1); g.appendChild(l2);
+    root.appendChild(g);
+    return {g, card, x:p[0]+cardW/2, y:p[1]+cardH/2};
+  });
+
+  const kbW = cardW*2 + gapX + 20;
+  const kbH = 4*cardH + 3*gapY + 20;
+  const kbOutline = el('rect', {x:baseX-10, y:baseY-10, width:kbW, height:kbH, rx:12, fill:'none', stroke:'#2f7a6a', 'stroke-width':1, 'stroke-dasharray':'3,4', opacity:0.5});
+  root.appendChild(kbOutline);
+
+  // ---------- query bubble ----------
+  const queryBox = el('g', {transform:'translate(395,52)'});
+  const qW = 175, qH = 40;
+  const queryRect = el('rect', {width:qW, height:qH, rx:20, fill:'#11171a', stroke:'#6fa8ff', 'stroke-width':1.5});
+  const queryDot = el('circle', {cx:22, cy:qH/2, r:4, fill:'#6fa8ff'});
+  const queryText = el('text', {x:qW/2+10, y:qH/2+5, fill:'#aecbff', 'font-family':'Vazirmatn, sans-serif', 'font-size':'12.5', 'text-anchor':'middle', direction:'rtl'});
+  queryText.textContent = 'بهترین عطر تابستونی؟';
+  queryBox.appendChild(queryRect); queryBox.appendChild(queryDot); queryBox.appendChild(queryText);
+  root.appendChild(queryBox);
+  const queryCenter = {x:395+qW/2, y:52+qH/2};
+
+  // ---------- retriever hub (center) ----------
+  const hubCenter = {x:300, y:270};
+  const hub = el('g', {transform:`translate(${hubCenter.x},${hubCenter.y})`});
+  const hubRingOuter = el('circle', {r:58, fill:'none', stroke:'#1c262a', 'stroke-width':1});
+  const hubRing = el('circle', {r:46, fill:'#11171a', stroke:'#5ee6c4', 'stroke-width':1.8});
+  const hubSpin = el('circle', {r:46, fill:'none', stroke:'#5ee6c4', 'stroke-width':1.8, 'stroke-dasharray':'8,222', opacity:0.9});
+  const hubT1 = el('text', {x:0, y:-4, fill:'#5ee6c4', 'font-family':'JetBrains Mono, monospace', 'font-size':'11.5', 'text-anchor':'middle', 'font-weight':'700'});
+  hubT1.textContent = 'RETRIEVER';
+  const hubT2 = el('text', {x:0, y:14, fill:'#5c7170', 'font-family':'Vazirmatn, sans-serif', 'font-size':'9', 'text-anchor':'middle', direction:'rtl'});
+  hubT2.textContent = 'شباهت معنایی';
+  hub.appendChild(hubRingOuter); hub.appendChild(hubRing); hub.appendChild(hubSpin); hub.appendChild(hubT1); hub.appendChild(hubT2);
+  root.appendChild(hub);
+
+  const spinAnim = el('animateTransform', {attributeName:'transform', type:'rotate', from:'0 0 0', to:'360 0 0', dur:'3.5s', repeatCount:'indefinite'});
+  hubSpin.appendChild(spinAnim);
+
+  // ---------- LLM box ----------
+  const llmW = 175, llmH = 54;
+  const llmBox = el('g', {transform:`translate(395,${506-30-llmH})`});
+  const llmRect = el('rect', {width:llmW, height:llmH, rx:12, fill:'#11171a', stroke:'#5ee6c4', 'stroke-width':1.6});
+  const llmIcon = el('circle', {cx:28, cy:llmH/2, r:10, fill:'none', stroke:'#5ee6c4', 'stroke-width':1.6});
+  const llmIcon2 = el('circle', {cx:28, cy:llmH/2, r:3.8, fill:'#5ee6c4'});
+  const llmText = el('text', {x: (llmW+28)/2, y:llmH/2+5, fill:'#5ee6c4', 'font-family':'JetBrains Mono, monospace', 'font-size':'14', 'text-anchor':'middle', 'font-weight':'700'});
+  llmText.textContent = 'LLM';
+  llmBox.appendChild(llmRect); llmBox.appendChild(llmIcon); llmBox.appendChild(llmIcon2); llmBox.appendChild(llmText);
+  root.appendChild(llmBox);
+  const llmPos = {x:395, y:506-30-llmH, w:llmW, h:llmH};
+
+  // ---------- answer card ----------
+  const ansW = 200, ansH = 60;
+  const ansBox = el('g', {transform:`translate(25,${506-30-ansH})`, opacity:0});
+  const ansRect = el('rect', {width:ansW, height:ansH, rx:12, fill:'#1a1410', stroke:'#ff8a5b', 'stroke-width':1.5});
+  const ansBar = el('rect', {x:14, y:13, width:50, height:5, rx:2.5, fill:'#ff8a5b'});
+  const ansT1 = el('text', {x:ansW/2, y:35, fill:'#ffb088', 'font-family':'Vazirmatn, sans-serif', 'font-size':'11', 'text-anchor':'middle', direction:'rtl'});
+  ansT1.textContent = 'پیشنهاد: Citrus Fresh';
+  const ansT2 = el('text', {x:ansW/2, y:50, fill:'#8a6450', 'font-family':'Vazirmatn, sans-serif', 'font-size':'9', 'text-anchor':'middle', direction:'rtl'});
+  ansT2.textContent = 'بر اساس کاتالوگ واقعی';
+  ansBox.appendChild(ansRect); ansBox.appendChild(ansBar); ansBox.appendChild(ansT1); ansBox.appendChild(ansT2);
+  root.appendChild(ansBox);
+  const ansPos = {x:25, y:506-30-ansH, w:ansW, h:ansH};
+
+  // static faint connective rails
+  function rail(x1,y1,x2,y2){
+    return el('path', {d:`M${x1},${y1} L${x2},${y2}`, stroke:'#1c262a', 'stroke-width':1.5, fill:'none'});
+  }
+  docPositions.forEach(p=> root.insertBefore(rail(p[0]+cardW/2, p[1]+cardH/2, hubCenter.x, hubCenter.y), kbOutline.nextSibling));
+  root.insertBefore(rail(queryCenter.x, queryCenter.y, hubCenter.x, hubCenter.y), hub);
+  root.insertBefore(rail(hubCenter.x, hubCenter.y, llmPos.x+llmPos.w/2, llmPos.y), llmBox);
+  root.insertBefore(rail(ansPos.x+ansPos.w/2, ansPos.y, hubCenter.x, hubCenter.y), ansBox);
+
+  function beam(x1,y1,x2,y2,color){
+    const b = el('line', {x1,y1,x2,y2, stroke:color, 'stroke-width':2.2, opacity:0, filter:'url(#ragGlow)'});
+    beamLayer.appendChild(b);
+    return b;
+  }
+  function flash(beamEl, duration){
+    beamEl.style.transition = 'none';
+    beamEl.setAttribute('opacity', 0);
+    void beamEl.getBoundingClientRect();
+    beamEl.style.transition = `opacity ${duration}ms ease`;
+    beamEl.setAttribute('opacity', 0.85);
+    setTimeout(()=> beamEl.setAttribute('opacity', 0), duration*0.7);
+  }
+  function pulseGlow(targetEl, color, ms){
+    targetEl.style.transition = 'filter .25s ease';
+    targetEl.style.filter = `drop-shadow(0 0 9px ${color})`;
+    setTimeout(()=>{ targetEl.style.filter = 'none'; }, ms||650);
+  }
+  function particle(color, r){
+    const c = el('circle', {r:r||4.5, fill:color, filter:'url(#ragGlow)'});
+    c.style.opacity = 0;
+    root.appendChild(c);
+    return c;
+  }
+  function animateParticle(p, x1,y1,x2,y2, duration){
+    return new Promise(resolve=>{
+      p.style.opacity = 1;
+      const start = performance.now();
+      function frame(t){
+        const prog = Math.min(1, (t-start)/duration);
+        const ease = 1 - Math.pow(1-prog, 3);
+        p.setAttribute('cx', x1 + (x2-x1)*ease);
+        p.setAttribute('cy', y1 + (y2-y1)*ease);
+        if(prog < 1){ requestAnimationFrame(frame); }
+        else { p.style.opacity = 0; resolve(); }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  const captions = [
+    'کاربر سوال خودش رو می‌پرسه…',
+    'موتور بازیابی، سوال رو به بردار معنایی تبدیل می‌کنه…',
+    'نزدیک‌ترین اسناد به سوال پیدا می‌شن',
+    'اسناد منتخب به‌عنوان زمینه به مدل زبانی تزریق می‌شن…',
+    'مدل، پاسخ نهایی رو بر اساس داده‌ی واقعی می‌سازه ✓'
+  ];
+  function setCaption(i){
+    caption.innerHTML = `<b>گام ${i+1}/۵ ›</b>&nbsp; ${captions[i]}`;
+  }
+
+  let running = false;
+  async function runCycle(){
+    if(running) return;
+    running = true;
+
+    ansBox.style.transition = 'opacity .5s';
+    ansBox.setAttribute('opacity', 0);
+    docEls.forEach(d => { d.card.setAttribute('stroke', '#2f7a6a'); d.card.style.filter='none'; });
+
+    setCaption(0);
+    pulseGlow(queryRect, '#6fa8ff', 500);
+    await wait(700);
+
+    setCaption(1);
+    const b1 = beam(queryCenter.x, queryCenter.y, hubCenter.x, hubCenter.y, '#6fa8ff');
+    flash(b1, 500);
+    const qp = particle('#6fa8ff', 5.5);
+    await animateParticle(qp, queryCenter.x, queryCenter.y, hubCenter.x, hubCenter.y, 750);
+    pulseGlow(hubRing, '#5ee6c4', 700);
+    qp.remove();
+
+    setCaption(2);
+    const shuffled = [...docEls].sort(()=> Math.random()-0.5);
+    const chosen = shuffled.slice(0,3);
+    chosen.forEach(d=>{
+      d.card.setAttribute('stroke', '#5ee6c4');
+      pulseGlow(d.card, '#5ee6c4', 900);
+    });
+    await wait(750);
+
+    setCaption(3);
+    const llmTarget = {x:llmPos.x+llmPos.w/2, y:llmPos.y};
+    await Promise.all(chosen.map((d, idx) => (async ()=>{
+      await wait(idx*180);
+      const b = beam(d.x, d.y, hubCenter.x, hubCenter.y, '#5ee6c4');
+      flash(b, 450);
+      const p1 = particle('#5ee6c4', 4.5);
+      await animateParticle(p1, d.x, d.y, hubCenter.x, hubCenter.y, 650);
+      p1.remove();
+      const b2 = beam(hubCenter.x, hubCenter.y, llmTarget.x, llmTarget.y, '#5ee6c4');
+      flash(b2, 450);
+      const p2 = particle('#5ee6c4', 4.5);
+      await animateParticle(p2, hubCenter.x, hubCenter.y, llmTarget.x, llmTarget.y, 650);
+      p2.remove();
+    })()));
+
+    pulseGlow(llmRect, '#5ee6c4', 800);
+    setCaption(4);
+    await wait(350);
+
+    const ansTarget = {x:ansPos.x+ansPos.w/2, y:ansPos.y};
+    const b3 = beam(hubCenter.x, hubCenter.y, ansTarget.x, ansTarget.y, '#ff8a5b');
+    flash(b3, 500);
+    ansBox.setAttribute('opacity', 1);
+    pulseGlow(ansRect, '#ff8a5b', 800);
+    await wait(2400);
+
+    running = false;
+    runCycle();
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ragObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting && !running){
+        if(reduceMotion){ setCaption(4); ansBox.setAttribute('opacity',1); }
+        else runCycle();
+      }
+    });
+  }, {threshold:0.3});
+  ragObserver.observe(document.getElementById('ragStage'));
+})();
+
+/* ============ SCRAPING ANIMATION — redesigned v2 ============ */
+(function(){
+  const svg = document.getElementById('scrapeSvg');
+  const caption = document.getElementById('scrapeCaption');
+  const ns = "http://www.w3.org/2000/svg";
+  const stage = document.querySelector('.scrape-stage');
+  svg.setAttribute('viewBox', '0 0 600 480');
+  svg.setAttribute('direction', 'ltr');
+
+  function el(tag, attrs){
+    const e = document.createElementNS(ns, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  const defs = el('defs', {});
+  const glow = el('filter', {id:'scrapeGlow', x:'-60%', y:'-60%', width:'220%', height:'220%'});
+  glow.appendChild(el('feGaussianBlur', {stdDeviation:'2.6', result:'b'}));
+  const mg = el('feMerge', {});
+  mg.appendChild(el('feMergeNode', {in:'b'}));
+  mg.appendChild(el('feMergeNode', {in:'SourceGraphic'}));
+  glow.appendChild(mg);
+  defs.appendChild(glow);
+  svg.appendChild(defs);
+
+  const root = el('g', {});
+  svg.appendChild(root);
+
+  // ---------- browser window (left) ----------
+  const winX=24, winY=24, winW=330, winH=240;
+  root.appendChild(el('rect', {x:winX, y:winY, width:winW, height:winH, rx:10, fill:'#12181b', stroke:'#2f7a6a', 'stroke-width':1.3}));
+  root.appendChild(el('rect', {x:winX, y:winY, width:winW, height:30, rx:10, fill:'#1a2226'}));
+  root.appendChild(el('rect', {x:winX, y:winY+18, width:winW, height:12, fill:'#1a2226'}));
+  [0,1,2].forEach((i)=> root.appendChild(el('circle', {cx:winX+18+i*14, cy:winY+15, r:4, fill: i===0?'#ff8a5b':'#2f3a3d'})));
+  root.appendChild(el('rect', {x:winX+70, y:winY+8, width:240, height:14, rx:7, fill:'#0e1314'}));
+  const urlText = el('text', {x:winX+190, y:winY+18, fill:'#5ee6c4', 'font-family':'JetBrains Mono, monospace', 'font-size':'8', 'text-anchor':'middle'});
+  urlText.textContent = '🔒 gallery-perfume.com/p/citrus-fresh';
+  root.appendChild(urlText);
+
+  // page DOM content: image block + text rows + price row
+  const imgBlock = el('rect', {x:winX+16, y:winY+46, width:74, height:74, rx:6, fill:'#1c262a', stroke:'#2f7a6a', 'stroke-width':1});
+  root.appendChild(imgBlock);
+  root.appendChild(el('path', {d:`M${winX+30},${winY+104} l16-18 11,12 9-10 16,18 z`, fill:'#2f7a6a', opacity:0.6}));
+
+  const titleRow = el('rect', {x:winX+102, y:winY+50, width:140, height:9, rx:3, fill:'#2a363a'});
+  const ratingRow = el('rect', {x:winX+102, y:winY+66, width:90, height:7, rx:3, fill:'#1c262a'});
+  root.appendChild(titleRow); root.appendChild(ratingRow);
+
+  // price row with adequate width
+  const priceRow = el('g', {});
+  const priceBg = el('rect', {x:winX+102, y:winY+82, width:110, height:18, rx:4, fill:'#1c262a'});
+  const priceText = el('text', {x:winX+157, y:winY+95, fill:'#9bb0b0', 'font-family':'JetBrains Mono, monospace', 'font-size':'9.5', 'text-anchor':'middle'});
+  priceText.textContent = '890,000 IRT';
+  priceRow.appendChild(priceBg); priceRow.appendChild(priceText);
+  root.appendChild(priceRow);
+
+  [0,1,2].forEach(i=>{
+    root.appendChild(el('rect', {x:winX+16, y:winY+136+i*16, width: i===2 ? 190 : 298, height:8, rx:3, fill:'#1c262a'}));
+  });
+
+  // highlight target box around price (animated)
+  const targetBox = el('rect', {x:winX+98, y:winY+78, width:118, height:26, rx:6, fill:'none', stroke:'#5ee6c4', 'stroke-width':0, opacity:0, filter:'url(#scrapeGlow)'});
+  root.appendChild(targetBox);
+  const targetTag = el('g', {opacity:0});
+  const tagRect = el('rect', {x:winX+98, y:winY+58, width:88, height:16, rx:4, fill:'#0e1314', stroke:'#5ee6c4', 'stroke-width':1});
+  const tagText = el('text', {x:winX+142, y:winY+69, fill:'#5ee6c4', 'font-family':'JetBrains Mono, monospace', 'font-size':'8.5', 'text-anchor':'middle'});
+  tagText.textContent = 'div.price';
+  targetTag.appendChild(tagRect); targetTag.appendChild(tagText);
+  root.appendChild(targetTag);
+
+  // ---------- DOM tree panel (right side) ----------
+  const treeX = 378, treeY = 24, treeW = 198, treeH = 240;
+  root.appendChild(el('rect', {x:treeX, y:treeY, width:treeW, height:treeH, rx:10, fill:'#0e1314', stroke:'#2f7a6a', 'stroke-width':1.2}));
+  const treeHead = el('text', {x:treeX+14, y:treeY+24, fill:'#5c7170', 'font-family':'JetBrains Mono, monospace', 'font-size':'9.5', 'font-weight':'700'});
+  treeHead.textContent = 'DOM TREE';
+  root.appendChild(treeHead);
+  root.appendChild(el('line', {x1:treeX+14, y1:treeY+34, x2:treeX+treeW-14, y2:treeY+34, stroke:'#1c262a', 'stroke-width':1}));
+
+  const treeNodes = [
+    {x:14, y:56,  text:'div.product', indent:0},
+    {x:14, y:76,  text:'img', indent:1},
+    {x:14, y:96,  text:'h1 \u203a title', indent:1},
+    {x:14, y:116, text:'span \u203a rating', indent:1},
+    {x:14, y:136, text:'div.price', indent:1, isTarget:true},
+    {x:14, y:156, text:'890,000', indent:2, isTargetVal:true},
+    {x:14, y:176, text:'p \u203a desc...', indent:1},
+  ];
+  const indentPx = 16;
+  let domPriceNode, domPriceLine;
+  treeNodes.forEach(n=>{
+    const t = el('text', {x:treeX+n.x+n.indent*indentPx, y:treeY+n.y, fill:'#5c7170', 'font-family':'JetBrains Mono, monospace', 'font-size':'9', 'text-anchor':'start'});
+    t.textContent = n.text;
+    root.appendChild(t);
+    if(n.isTargetVal){ domPriceNode = t; }
+    if(n.isTarget){ domPriceLine = t; }
+  });
+
+  // ---------- terminal panel (bottom, full width) ----------
+  const termX=24, termY=288, termW=552, termH=168;
+  root.appendChild(el('rect', {x:termX, y:termY, width:termW, height:termH, rx:10, fill:'#0a0f10', stroke:'#2f7a6a', 'stroke-width':1.3}));
+  root.appendChild(el('rect', {x:termX, y:termY, width:termW, height:28, rx:10, fill:'#12181b'}));
+  root.appendChild(el('rect', {x:termX, y:termY+14, width:termW, height:14, fill:'#12181b'}));
+  [0,1,2].forEach(i=> root.appendChild(el('circle', {cx:termX+17+i*14, cy:termY+14, r:3.8, fill:'#2f3a3d'})));
+  const termTitle = el('text', {x:termX+termW/2, y:termY+18, fill:'#5c7170', 'font-family':'JetBrains Mono, monospace', 'font-size':'9', 'text-anchor':'middle'});
+  termTitle.textContent = 'terminal — python scraper.py';
+  root.appendChild(termTitle);
+
+  const promptLine = el('text', {x:termX+18, y:termY+50, fill:'#5ee6c4', 'font-family':'JetBrains Mono, monospace', 'font-size':'11', 'font-weight':'700'});
+  promptLine.textContent = '$ python scraper.py --target product-page';
+  root.appendChild(promptLine);
+
+  const termLines = [];
+  for(let i=0;i<4;i++){
+    const t = el('text', {x:termX+18, y:termY+74+i*20, fill:'#9bb0b0', 'font-family':'JetBrains Mono, monospace', 'font-size':'10', opacity:0});
+    root.appendChild(t);
+    termLines.push(t);
+  }
+
+  const cursor = el('rect', {x:termX+18, y:termY+156, width:7, height:13, fill:'#5ee6c4'});
+  root.appendChild(cursor);
+  const cursorAnim = el('animate', {attributeName:'opacity', values:'1;0;1', dur:'1s', repeatCount:'indefinite'});
+  cursor.appendChild(cursorAnim);
+
+  function particle(color){
+    const p = el('circle', {r:4.5, fill:color, filter:'url(#scrapeGlow)', opacity:0});
+    root.appendChild(p);
+    return p;
+  }
+  function animateParticle(p, x1,y1,x2,y2, duration){
+    return new Promise(resolve=>{
+      p.setAttribute('opacity', 1);
+      const start = performance.now();
+      function frame(t){
+        const prog = Math.min(1, (t-start)/duration);
+        const ease = 1 - Math.pow(1-prog,3);
+        p.setAttribute('cx', x1+(x2-x1)*ease);
+        p.setAttribute('cy', y1+(y2-y1)*ease - Math.sin(prog*Math.PI)*40);
+        if(prog<1) requestAnimationFrame(frame);
+        else { p.setAttribute('opacity',0); resolve(); }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function setStroke(elx, color, width){ elx.style.transition='all .3s'; elx.setAttribute('stroke', color); elx.setAttribute('stroke-width', width); }
+
+  const steps = [
+    'بارگذاری صفحه‌ی محصول با Playwright…',
+    'پیمایش ساختار DOM برای یافتن عنصر هدف…',
+    'شناسایی div.price و استخراج مقدار…',
+    'تبدیل به JSON و ذخیره‌سازی خروجی ✓'
+  ];
+  function setCaption(i){ caption.innerHTML = `<b>${i+1}/۴ ›</b>&nbsp; ${steps[i]}`; }
+
+  let running = false;
+  async function runCycle(){
+    if(running) return;
+    running = true;
+
+    targetBox.style.transition='none';
+    targetBox.setAttribute('opacity', 0); targetBox.setAttribute('stroke-width', 0);
+    targetTag.setAttribute('opacity', 0);
+    setStroke(imgBlock, '#2f7a6a', 1);
+    termLines.forEach(t=>{ t.setAttribute('opacity',0); t.textContent=''; });
+    if(domPriceNode){ domPriceNode.setAttribute('fill', '#5c7170'); }
+    if(domPriceLine){ domPriceLine.setAttribute('fill', '#5c7170'); }
+
+    setCaption(0);
+    setStroke(imgBlock, '#5ee6c4', 1.6);
+    await wait(900);
+    setStroke(imgBlock, '#2f7a6a', 1);
+
+    setCaption(1);
+    for(const n of [titleRow, ratingRow]){
+      setStroke(n, '#5ee6c4', 1);
+      await wait(220);
+    }
+    await wait(300);
+
+    setCaption(2);
+    targetBox.style.transition = 'opacity .35s, stroke-width .35s';
+    targetBox.setAttribute('opacity', 1);
+    targetBox.setAttribute('stroke-width', 2);
+    targetTag.style.transition = 'opacity .35s';
+    targetTag.setAttribute('opacity', 1);
+    if(domPriceNode){ domPriceNode.setAttribute('fill', '#5ee6c4'); }
+    if(domPriceLine){ domPriceLine.setAttribute('fill', '#5ee6c4'); }
+    await wait(700);
+
+    const p = particle('#5ee6c4');
+    await animateParticle(p, winX+155, winY+91, termX+30, termY+50, 850);
+    p.remove();
+
+    setCaption(3);
+    termLines[0].setAttribute('opacity',1);
+    termLines[0].setAttribute('fill', '#5ee6c4');
+    termLines[0].textContent = '✓ صفحه با موفقیت بارگذاری شد (200 OK)';
+    await wait(450);
+    termLines[1].setAttribute('opacity',1);
+    termLines[1].setAttribute('fill', '#5ee6c4');
+    termLines[1].textContent = '✓ عنصر div.price شناسایی شد';
+    await wait(450);
+    termLines[2].setAttribute('opacity',1);
+    termLines[2].setAttribute('fill', '#eaf3f2');
+    termLines[2].textContent = '{ "price": "890000", "currency": "IRT" }';
+    await wait(450);
+    termLines[3].setAttribute('opacity',1);
+    termLines[3].setAttribute('fill', '#5ee6c4');
+    termLines[3].textContent = '✓ ذخیره شد → output.json';
+    cursor.setAttribute('y', termY+176);
+
+    await wait(2400);
+    cursor.setAttribute('y', termY+156);
+    running = false;
+    runCycle();
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting && !running){
+        if(reduceMotion){ setCaption(3); }
+        else runCycle();
+      }
+    });
+  }, {threshold:0.3});
+  obs.observe(stage);
+})();
+
+/* ============ N8N WORKFLOW ANIMATION — redesigned v2 ============ */
+(function(){
+  const svg = document.getElementById('n8nSvg');
+  const ns = "http://www.w3.org/2000/svg";
+  const stage = document.querySelector('.n8n-stage');
+  svg.setAttribute('viewBox', '0 0 640 380');
+  svg.setAttribute('direction', 'ltr');
+
+  function el(tag, attrs){
+    const e = document.createElementNS(ns, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  const defs = el('defs', {});
+  const glow = el('filter', {id:'n8nGlow', x:'-60%', y:'-60%', width:'220%', height:'220%'});
+  glow.appendChild(el('feGaussianBlur', {stdDeviation:'3', result:'b'}));
+  const mg = el('feMerge', {});
+  mg.appendChild(el('feMergeNode', {in:'b'}));
+  mg.appendChild(el('feMergeNode', {in:'SourceGraphic'}));
+  glow.appendChild(mg);
+  defs.appendChild(glow);
+
+  const bgPattern = el('pattern', {id:'n8nDots', width:18, height:18, patternUnits:'userSpaceOnUse'});
+  bgPattern.appendChild(el('circle', {cx:1.2, cy:1.2, r:1.2, fill:'#1c262a'}));
+  defs.appendChild(bgPattern);
+  svg.appendChild(defs);
+
+  svg.appendChild(el('rect', {x:0,y:0, width:640, height:380, fill:'url(#n8nDots)'}));
+
+  const root = el('g', {});
+  svg.appendChild(root);
+  const wireLayer = el('g', {});
+  root.appendChild(wireLayer);
+
+  // node half-width is 64 (box width 128) — keep all x >= 64+margin and x <= 640-64-margin
+  const nodes = [
+    {id:'trigger', x:90,  y:190, label:'سفارش جدید',     sub:'Webhook Trigger', icon:'\u26A1', color:'#ff8a5b'},
+    {id:'ai',      x:255, y:100, label:'تحلیل پیام',      sub:'AI Agent',        icon:'\u2726', color:'#5ee6c4'},
+    {id:'db',      x:255, y:280, label:'ثبت در دیتابیس',  sub:'Postgres',        icon:'\u25A4', color:'#5ee6c4'},
+    {id:'merge',   x:420, y:190, label:'ترکیب نتایج',     sub:'Merge',           icon:'\u22C8', color:'#5ee6c4'},
+    {id:'notify',  x:560, y:190, label:'ارسال پیامک',     sub:'SMS Notify',      icon:'\u2713', color:'#6fa8ff'},
+  ];
+  const nodeMap = {};
+  nodes.forEach(n=> nodeMap[n.id]=n);
+
+  const wires = [
+    ['trigger','ai'], ['trigger','db'], ['ai','merge'], ['db','merge'], ['merge','notify']
+  ];
+
+  const nodeW = 132, nodeH = 64;
+
+  function wirePath(a,b){
+    const x1=a.x+nodeW/2, y1=a.y, x2=b.x-nodeW/2, y2=b.y;
+    const mx = (x1+x2)/2;
+    return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+  }
+
+  const wireEls = {};
+  wires.forEach(([a,b])=>{
+    const A=nodeMap[a], B=nodeMap[b];
+    const path = el('path', {d: wirePath(A,B), stroke:'#2f7a6a', 'stroke-width':2, fill:'none'});
+    wireLayer.appendChild(path);
+    wireEls[a+'_'+b] = path;
+  });
+
+  const nodeEls = {};
+  nodes.forEach(n=>{
+    const g = el('g', {transform:`translate(${n.x},${n.y})`});
+    const rect = el('rect', {x:-nodeW/2, y:-nodeH/2, width:nodeW, height:nodeH, rx:12, fill:'#12181b', stroke:'#2f7a6a', 'stroke-width':1.4});
+    const iconBg = el('circle', {cx:-nodeW/2, cy:0, r:17, fill:'#11171a', stroke:n.color, 'stroke-width':1.6});
+    const iconTxt = el('text', {x:-nodeW/2, y:5, fill:n.color, 'font-family':'JetBrains Mono, monospace', 'font-size':'14', 'text-anchor':'middle', 'font-weight':'700'});
+    iconTxt.textContent = n.icon;
+    const labelTxt = el('text', {x:4, y:-4, fill:'#eaf3f2', 'font-family':'Vazirmatn, sans-serif', 'font-size':'12.5', 'text-anchor':'middle', 'font-weight':'600', direction:'rtl'});
+    labelTxt.textContent = n.label;
+    const subTxt = el('text', {x:4, y:14, fill:'#5c7170', 'font-family':'JetBrains Mono, monospace', 'font-size':'8.5', 'text-anchor':'middle'});
+    subTxt.textContent = n.sub;
+    g.appendChild(rect); g.appendChild(iconBg); g.appendChild(iconTxt); g.appendChild(labelTxt); g.appendChild(subTxt);
+    root.appendChild(g);
+    nodeEls[n.id] = {g, rect, iconBg};
+  });
+
+  const statusDots = {};
+  nodes.forEach(n=>{
+    const d = el('circle', {cx:n.x+nodeW/2-12, cy:n.y-nodeH/2+12, r:5.5, fill:'#1c262a', stroke:'#0a0e0f', 'stroke-width':1.5});
+    root.appendChild(d);
+    statusDots[n.id] = d;
+  });
+
+  function setActive(id, on){
+    const {rect, iconBg} = nodeEls[id];
+    rect.style.transition = 'filter .25s, stroke .25s';
+    iconBg.style.transition = 'filter .25s';
+    if(on){
+      rect.setAttribute('stroke', nodeMap[id].color);
+      rect.style.filter = `drop-shadow(0 0 8px ${nodeMap[id].color})`;
+      iconBg.style.filter = `drop-shadow(0 0 6px ${nodeMap[id].color})`;
+      statusDots[id].setAttribute('fill', '#5ee6c4');
+      statusDots[id].style.filter = 'drop-shadow(0 0 4px #5ee6c4)';
+    } else {
+      rect.setAttribute('stroke', '#2f7a6a');
+      rect.style.filter = 'none';
+      iconBg.style.filter = 'none';
+    }
+  }
+  function resetStatus(id){
+    statusDots[id].setAttribute('fill', '#1c262a');
+    statusDots[id].style.filter = 'none';
+  }
+
+  function travel(wireKey, color, duration){
+    return new Promise(resolve=>{
+      const path = wireEls[wireKey];
+      const len = path.getTotalLength();
+      const p = el('circle', {r:4.5, fill:color, filter:'url(#n8nGlow)'});
+      root.appendChild(p);
+      path.style.transition = 'none';
+      path.setAttribute('stroke', color);
+      path.setAttribute('opacity', 0.95);
+
+      const start = performance.now();
+      function frame(t){
+        const prog = Math.min(1, (t-start)/duration);
+        const pt = path.getPointAtLength(len*prog);
+        p.setAttribute('cx', pt.x);
+        p.setAttribute('cy', pt.y);
+        if(prog<1){ requestAnimationFrame(frame); }
+        else {
+          p.remove();
+          path.style.transition = 'stroke .6s, opacity .6s';
+          path.setAttribute('stroke', '#2f7a6a');
+          path.setAttribute('opacity', 1);
+          resolve();
+        }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  let running = false;
+  async function runCycle(){
+    if(running) return;
+    running = true;
+
+    Object.keys(nodeEls).forEach(id => { setActive(id,false); resetStatus(id); });
+    await wait(300);
+
+    setActive('trigger', true);
+    await wait(400);
+
+    await Promise.all([
+      travel('trigger_ai', '#ff8a5b', 750),
+      travel('trigger_db', '#ff8a5b', 750)
+    ]);
+    setActive('ai', true); setActive('db', true);
+    await wait(450);
+
+    await Promise.all([
+      travel('ai_merge', '#5ee6c4', 750),
+      travel('db_merge', '#5ee6c4', 750)
+    ]);
+    setActive('merge', true);
+    await wait(450);
+
+    await travel('merge_notify', '#6fa8ff', 750);
+    setActive('notify', true);
+    await wait(1800);
+
+    running = false;
+    runCycle();
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting && !running && !reduceMotion){ runCycle(); }
+    });
+  }, {threshold:0.3});
+  obs.observe(stage);
+})();
+
+/* ============ FINE-TUNE BARS ============ */
+(function(){
+  const compare = document.getElementById('ftCompare');
+  if(!compare) return;
+  const bars = compare.querySelectorAll('.ft-bar-fill');
+  function fill(){
+    bars.forEach(b=> { b.style.width = b.dataset.w + '%'; });
+  }
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        fill();
+        obs.unobserve(e.target);
+      }
+    });
+  }, {threshold:0.2});
+  obs.observe(compare);
+})();
+</script>
+</body>
+</html>
